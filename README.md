@@ -42,7 +42,7 @@ ecs-exec-fzf/
 클러스터/서비스/태스크 선택 → 컨테이너 접속까지 흐름 예시입니다.
 
 ### 1. AWS 프로파일 선택
-<img src="images/image1.png" alt="프로파일 선택" width="50%" />
+<img src="images/image1.png" alt="프로파일 선택" width="30%" />
 
 ### 2. 셸 접속 실행
 <img src="images/image2.png" alt="셸 접속" width="50%" />
