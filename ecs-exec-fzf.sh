@@ -64,15 +64,21 @@ while true; do
     echo ""
     echo "다음 명령어로 서비스에 기능을 활성화하세요:"
     echo ""
-    echo "aws ecs update-service \"
-    echo "  --region $REGION \"
-    echo "  --cluster $CLUSTER \"
-    echo "  --service $SERVICE \"
-    echo "  --enable-execute-command"
+    echo "aws ecs update-service \ "
+    echo "  --region $REGION \ "
+    echo "  --cluster $CLUSTER \ "
+    echo "  --service $SERVICE \ "
+    echo "  --enable-execute-command \ "
+    echo "  --profile $PROFILE"
     echo ""
     echo "그 후 아래 명령어로 태스크를 재시작하세요:"
     echo ""
-    echo "aws ecs update-service --region $REGION --cluster $CLUSTER --service $SERVICE --force-new-deployment"
+    echo "aws ecs update-service \ "
+    echo "  --region $REGION \ "
+    echo "  --cluster $CLUSTER \ "
+    echo "  --service $SERVICE \ "
+    echo "  --force-new-deployment \ "
+    echo "  --profile $PROFILE"
     echo ""
     exit 1
   fi
@@ -80,7 +86,7 @@ while true; do
   # 8. execute-command 실행
   echo "접속 중: [$PROFILE] $CLUSTER / $SERVICE / $TASK → $CONTAINER"
 
-  aws ecs execute-command     --region "$REGION"     --cluster "$CLUSTER"     --task "$TASK"     --container "$CONTAINER"     --interactive     --command "/bin/sh"
+  aws ecs execute-command     --region "$REGION"     --cluster "$CLUSTER"     --task "$TASK"     --container "$CONTAINER"     --interactive     --command "/bin/sh --profile $PROFILE"
 
   break
 done
