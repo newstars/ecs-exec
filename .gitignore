@@ -1,0 +1,10 @@
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Python or node projects (if used later)
+__pycache__/
+.env
+node_modules/
