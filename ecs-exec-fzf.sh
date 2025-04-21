@@ -3,10 +3,7 @@
 REGION=${1:-ap-northeast-2}
 
 # 1. AWS 프로파일 선택 (config + credentials)
-PROFILE=$( (
-  grep -E "^\[profile " ~/.aws/config 2>/dev/null | sed 's/\[profile //;s/\]//' ;
-  grep -E "^\[[a-zA-Z0-9_-]+\]" ~/.aws/credentials 2>/dev/null | sed 's/^\[\(.*\)\]/\1/'
-  ) | sort -u | fzf --prompt="AWS 프로파일 선택 > ")
+PROFILE=$( (   grep -E "^\[profile " ~/.aws/config 2>/dev/null | sed 's/\[profile //;s/\]//' ;   grep -E "^\[[a-zA-Z0-9_-]+\]" ~/.aws/credentials 2>/dev/null | sed 's/^\[\(.*\)\]//'   ) | sort -u | fzf --prompt="AWS 프로파일 선택 > ")
 
 [ -z "$PROFILE" ] && echo "프로파일 선택이 취소되었습니다." && exit 1
 export AWS_PROFILE="$PROFILE"
@@ -24,26 +21,23 @@ fi
 
 while true; do
   # 3. 클러스터 선택
-  CLUSTER=$( (echo ".. (뒤로 가기)"; aws ecs list-clusters     --region "$REGION"     --query 'clusterArns[*]'     --output text | tr '\t' '\n' | sed 's|.*/||') |     fzf --prompt="클러스터 선택 > ")
+  CLUSTER=$( (echo ".. (뒤로 가기)"; aws ecs list-clusters     --region "$REGION"     --query 'clusterArns[*]'     --output text | tr '	' '
+' | sed 's|.*/||') |     fzf --prompt="클러스터 선택 > ")
   [ -z "$CLUSTER" ] && echo "클러스터 선택이 취소되었습니다." && exit 1
   [ "$CLUSTER" = ".. (뒤로 가기)" ] && echo "이전 단계 없음. 종료합니다." && exit 0
 
   # 4. 서비스 선택
-  SERVICE=$( (echo ".. (뒤로 가기)"; aws ecs list-services     --region "$REGION"     --cluster "$CLUSTER"     --query 'serviceArns[*]'     --output text | tr '\t' '\n' | sed 's|.*/||') |     fzf --prompt="서비스 선택 > ")
+  SERVICE=$( (echo ".. (뒤로 가기)"; aws ecs list-services     --region "$REGION"     --cluster "$CLUSTER"     --query 'serviceArns[*]'     --output text | tr '	' '
+' | sed 's|.*/||') |     fzf --prompt="서비스 선택 > ")
   [ -z "$SERVICE" ] && echo "서비스 선택이 취소되었습니다. 클러스터 선택으로 돌아갑니다." && continue
   [ "$SERVICE" = ".. (뒤로 가기)" ] && continue
 
-  # 5. 태스크 목록 + IP + 상태 preview
-  TASKS=$(aws ecs list-tasks     --region "$REGION"     --cluster "$CLUSTER"     --service-name "$SERVICE"     --desired-status RUNNING     --query 'taskArns[*]'     --output text)
+  # 5. 태스크 목록 + IP + 상태 preview (배치 처리로 개선)
+  TASK_ARN_LIST=$(aws ecs list-tasks     --region "$REGION"     --cluster "$CLUSTER"     --service-name "$SERVICE"     --desired-status RUNNING     --query 'taskArns[*]'     --output text)
 
-  [ -z "$TASKS" ] && echo "실행 중인 태스크가 없습니다." && continue
+  [ -z "$TASK_ARN_LIST" ] && echo "실행 중인 태스크가 없습니다." && continue
 
-  TASK_INFO_LIST=""
-  for TASK_ARN in $TASKS; do
-    TASK_ID=$(basename "$TASK_ARN")
-    IP=$(aws ecs describe-tasks       --region "$REGION"       --cluster "$CLUSTER"       --tasks "$TASK_ID"       --query "tasks[0].attachments[?type=='ElasticNetworkInterface'].details[?name=='privateIPv4Address'].value"       --output text)
-    TASK_INFO_LIST+="$TASK_ID   $IP"$'\n'
-  done
+  TASK_INFO_LIST=$(aws ecs describe-tasks     --region "$REGION"     --cluster "$CLUSTER"     --tasks $TASK_ARN_LIST     --query "tasks[*].{ID:taskArn, IP:attachments[?type=='ElasticNetworkInterface'].details[?name=='privateIPv4Address'].value | [0]}"     --output text | awk '{ split($1, idParts, "/"); print idParts[length(idParts)], $2 }')
 
   TASK_LINE=$( (echo ".. (뒤로 가기)"; echo "$TASK_INFO_LIST") |     fzf --prompt="태스크 선택 (ID + IP) > "         --preview="aws ecs describe-tasks --region $REGION --cluster $CLUSTER --tasks {1}           --query 'tasks[0].{Status:lastStatus,LaunchType:launchType,StartedAt:startedAt,IP:attachments[0].details[?name==\`privateIPv4Address\`].value | [0]}'           --output yaml" )
   TASK=$(echo "$TASK_LINE" | awk '{print $1}')
@@ -51,7 +45,8 @@ while true; do
   [ "$TASK" = ".." ] && continue
 
   # 6. 컨테이너 선택
-  CONTAINER=$( (echo ".. (뒤로 가기)"; aws ecs describe-tasks     --region "$REGION"     --cluster "$CLUSTER"     --tasks "$TASK"     --query "tasks[0].containers[*].name"     --output text) | tr '\t' '\n' |     fzf --prompt="컨테이너 선택 > ")
+  CONTAINER=$( (echo ".. (뒤로 가기)"; aws ecs describe-tasks     --region "$REGION"     --cluster "$CLUSTER"     --tasks "$TASK"     --query "tasks[0].containers[*].name"     --output text) | tr '	' '
+' |     fzf --prompt="컨테이너 선택 > ")
   [ -z "$CONTAINER" ] && echo "컨테이너 선택이 취소되었습니다. 클러스터 선택으로 돌아갑니다." && continue
   [ "$CONTAINER" = ".. (뒤로 가기)" ] && continue
 
@@ -73,7 +68,12 @@ while true; do
     echo ""
     echo "그 후 아래 명령어로 태스크를 재시작하세요:"
     echo ""
-    echo "aws ecs update-service --region $REGION --cluster $CLUSTER --service $SERVICE --force-new-deployment"
+    echo "aws ecs update-service \\"
+    echo "  --region $REGION \\"
+    echo "  --cluster $CLUSTER \\"
+    echo "  --service $SERVICE \\"
+    echo "  --force-new-deployment \\"
+    echo "  --profile $PROFILE"
     echo ""
     exit 1
   fi
