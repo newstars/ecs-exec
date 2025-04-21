@@ -1,0 +1,29 @@
+# AWS Config 샘플
+
+## 파일 경로 
+~/.aws/config
+
+### config 파일 내용
+
+```
+[default]
+region = ap-northeast-2
+output = json
+
+[profile prod]
+region = ap-northeast-2
+output = json
+sso_start_url = {SSO URL}
+sso_region = ap-northeast-2
+sso_account_id = {SSO Account ID Number}
+sso_role_name = {SSO Role Name}
+
+[profile test]
+region = ap-northeast-2
+output = json
+sso_start_url = {SSO URL}
+sso_region = ap-northeast-2
+sso_account_id = {SSO Account ID Number}
+sso_role_name = {SSO Role Name}
+
+```
