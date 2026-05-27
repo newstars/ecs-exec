@@ -1,6 +1,15 @@
 # ECS Exec FZF
 
+[![CI](https://github.com/newstars/ecs-exec/actions/workflows/ci.yml/badge.svg)](https://github.com/newstars/ecs-exec/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 AWS ECS 컨테이너에 대화형으로 접속할 수 있는 FZF 기반 도구입니다.
+
+`aws ecs execute-command`에 필요한 클러스터, 서비스, 태스크, 컨테이너 이름을 매번 찾아 복사하지 않고, 터미널에서 바로 선택해 접속할 수 있습니다.
+
+> English: An interactive FZF picker for `aws ecs execute-command`.
+
+![ECS Exec FZF demo](images/image1.png)
 
 ## ✨ 주요 기능
 
@@ -9,6 +18,7 @@ AWS ECS 컨테이너에 대화형으로 접속할 수 있는 FZF 기반 도구�
 - 📊 **진행상황 표시**: 스피너와 진행률 바로 실시간 상태 확인
 - 🔄 **SSO 지원**: AWS SSO 자동 로그인 처리
 - 🌏 **다중 프로파일**: AWS 프로파일 선택 지원
+- 🧭 **IP 미리보기**: 태스크 선택 시 private IP와 실행 상태 확인
 
 ## 🚀 설치
 
@@ -16,25 +26,25 @@ AWS ECS 컨테이너에 대화형으로 접속할 수 있는 FZF 기반 도구�
 
 ```bash
 # 모든 의존성과 함께 자동 설치
-curl -fsSL https://raw.githubusercontent.com/newstars/ecs-exec-fzf/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/newstars/ecs-exec/main/install.sh | bash
 ```
 
 ### Homebrew
 
 ```bash
 # 탭 추가
-brew tap newstars/ecs-exec-fzf https://github.com/newstars/ecs-exec-fzf
+brew tap newstars/ecs-exec https://github.com/newstars/ecs-exec
 
 # 설치 (의존성 자동 설치)
-brew install ecs-exec-fzf
+brew install --HEAD ecs-exec-fzf
 ```
 
 ### 수동 설치
 
 ```bash
 # 저장소 클론
-git clone https://github.com/newstars/ecs-exec-fzf.git
-cd ecs-exec-fzf
+git clone https://github.com/newstars/ecs-exec.git
+cd ecs-exec
 
 # 자동 설치 스크립트 실행
 chmod +x install.sh
@@ -69,6 +79,15 @@ ecs-exec-fzf
 # 특정 리전 지정
 ecs-exec-fzf us-west-2
 ```
+
+실행 흐름:
+
+1. AWS 프로파일 선택
+2. ECS 클러스터 선택
+3. 서비스 선택
+4. 실행 중인 태스크 선택
+5. 컨테이너 선택
+6. `/bin/sh`로 접속
 
 ## 🔐 필요한 IAM 권한
 
@@ -117,7 +136,7 @@ ecs-exec-fzf us-west-2
 
 > 💡 **팁**: `ecs:UpdateService` 권한이 없어도 기본 기능은 사용 가능하며, 권한이 없을 때 수동 명령어를 제공합니다.
 
-## 🎯 사용 시나리오
+## 🎯 사용 흐름
 
 ### 1. 일반적인 접속
 1. AWS 프로파일 선택
@@ -173,16 +192,25 @@ ecs-exec-fzf us-west-2
 ### 로컬 테스트
 ```bash
 chmod +x ecs-exec-fzf.sh
+bash -n ecs-exec-fzf.sh
+bash -n install.sh
 ./ecs-exec-fzf.sh
 ```
 
-### Formula 업데이트
+### Stable Homebrew 릴리스 준비
 ```bash
-# SHA256 계산
-shasum -a 256 ecs-exec-fzf-1.0.0.tar.gz
+# 태그 배포 후 tarball SHA256 계산
+shasum -a 256 ecs-exec-1.0.0.tar.gz
 
-# Formula 파일의 sha256 값 업데이트
+# Formula 파일에 url/sha256 추가
 ```
+
+## 🗺️ 로드맵
+
+- 릴리스 태그 기반 Homebrew stable 설치 지원
+- ECS Exec 사전 조건 진단 명령 추가
+- 서비스 없이 실행된 standalone task 접속 지원
+- README 영어 버전 추가
 
 ## 📝 라이선스
 

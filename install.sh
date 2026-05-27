@@ -4,6 +4,8 @@ set -e
 
 echo "🚀 ECS Exec FZF 설치 시작..."
 
+REPO_RAW_URL="https://raw.githubusercontent.com/newstars/ecs-exec/main"
+
 # 운영체제 확인
 OS="$(uname -s)"
 case "${OS}" in
@@ -136,8 +138,16 @@ install_script() {
         fi
     fi
     
-    # 스크립트 복사
-    sudo cp "$(dirname "$0")/ecs-exec-fzf.sh" "$INSTALL_DIR/ecs-exec-fzf"
+    # 스크립트 복사. curl | bash 실행 시에는 로컬 파일이 없으므로 GitHub에서 내려받습니다.
+    local script_path
+    script_path="$(dirname "$0")/ecs-exec-fzf.sh"
+
+    if [[ -f "$script_path" ]]; then
+        sudo cp "$script_path" "$INSTALL_DIR/ecs-exec-fzf"
+    else
+        sudo curl -fsSL "$REPO_RAW_URL/ecs-exec-fzf.sh" -o "$INSTALL_DIR/ecs-exec-fzf"
+    fi
+
     sudo chmod +x "$INSTALL_DIR/ecs-exec-fzf"
     
     echo "✅ 스크립트가 $INSTALL_DIR/ecs-exec-fzf 에 설치되었습니다."

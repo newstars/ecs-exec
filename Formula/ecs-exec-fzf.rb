@@ -1,8 +1,7 @@
 class EcsExecFzf < Formula
   desc "Interactive ECS container exec tool with FZF"
-  homepage "https://github.com/newstars/ecs-exec-fzf"
-  url "https://github.com/newstars/ecs-exec-fzf/archive/v1.0.0.tar.gz"
-  sha256 "YOUR_SHA256_HERE"
+  homepage "https://github.com/newstars/ecs-exec"
+  head "https://github.com/newstars/ecs-exec.git", branch: "main"
   license "MIT"
 
   depends_on "awscli"
