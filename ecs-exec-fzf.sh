@@ -36,7 +36,10 @@ show_spinner() {
 # 진행률 표시
 show_progress() {
   local current=$1 total=$2 msg="$3"
-  local percent=$((current * 100 / total)) filled=$((percent / 5)) empty=$((20 - filled))
+  local percent filled empty
+  percent=$((current * 100 / total))
+  filled=$((percent / 5))
+  empty=$((20 - filled))
   printf "\r%s [" "$msg"
   printf "%*s" "$filled" "" | tr ' ' '█'
   printf "%*s" "$empty" "" | tr ' ' '░'
